@@ -1,1 +1,33 @@
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
 *.skb
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+
+# Logs and caches
+*.log
+.cache/
+.sass-cache/
+
+# Tooling, if a build step is added later
+node_modules/
+dist/
+.parcel-cache/
