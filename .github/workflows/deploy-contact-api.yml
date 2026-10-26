@@ -54,6 +54,14 @@ jobs:
       - name: Build
         run: sam build
 
+      - name: Prepare SAM artifact bucket
+        run: |
+          BUCKET="sunshine-sam-artifacts-203475186152"
+          if ! aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null; then
+            aws s3api create-bucket --bucket "$BUCKET" --region us-east-1
+          fi
+          echo "SAM_BUCKET=$BUCKET" >> "$GITHUB_ENV"
+
       - name: Deploy
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
@@ -65,7 +73,8 @@ jobs:
           sam deploy \
             --stack-name sunshine-contact-api \
             --capabilities CAPABILITY_IAM \
-            --resolve-s3 \
+            --s3-bucket "$SAM_BUCKET" \
+            --s3-prefix sunshine-contact-api \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
             --parameter-overrides \
