@@ -28,11 +28,31 @@ jobs:
 
       - name: Deploy website files to S3
         run: |
+          EXCLUDES=(
+            --exclude ".git/*"
+            --exclude ".github/*"
+            --exclude "infra/contact-api/*"
+            --exclude "infra/contact-api/**"
+            --exclude "**/node_modules/*"
+            --exclude "**/.aws-sam/*"
+          )
+
+          # Assets first: long browser/CDN cache (1 year) for repeat visits
+          aws s3 sync . s3://sunshine-landscape-mgmt \
+            "${EXCLUDES[@]}" \
+            --exclude "*.html" \
+            --cache-control "public, max-age=31536000"
+
+          # HTML: short TTL so page edits show quickly without a full CDN wait
+          aws s3 sync . s3://sunshine-landscape-mgmt \
+            "${EXCLUDES[@]}" \
+            --exclude "*" \
+            --include "*.html" \
+            --cache-control "public, max-age=300, must-revalidate" \
+            --content-type "text/html; charset=utf-8"
+
+          # Remove orphaned remote files (no Cache-Control change)
           aws s3 sync . s3://sunshine-landscape-mgmt \
             --delete \
-            --exclude ".git/*" \
-            --exclude ".github/*" \
-            --exclude "infra/contact-api/*" \
-            --exclude "infra/contact-api/**" \
-            --exclude "**/node_modules/*" \
-            --exclude "**/.aws-sam/*"
+            "${EXCLUDES[@]}" \
+            --size-only
