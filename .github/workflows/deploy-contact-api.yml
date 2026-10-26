@@ -37,7 +37,14 @@ jobs:
           node-version: "20"
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          ls -la
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            echo "No package-lock.json; falling back to npm install"
+            npm install
+          fi
 
       - name: Install SAM CLI
         uses: aws-actions/setup-sam@v2
