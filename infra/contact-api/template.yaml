@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Sunshine Landscape contact form API (Resend + DynamoDB)
+
+Parameters:
+  ResendApiKey:
+    Type: String
+    NoEcho: true
+    Description: Resend API key (sending access)
+  ContactToEmail:
+    Type: String
+    Default: slandscapemgmt@gmail.com
+  ContactFromEmail:
+    Type: String
+    Default: "Sunshine Landscape <noreply@sunshine-landscape.com>"
+  AllowedOrigins:
+    Type: String
+    Default: "https://d1xqzsinhbxchn.cloudfront.net,https://sunshine-landscape.com,https://www.sunshine-landscape.com"
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 15
+    MemorySize: 256
+
+Resources:
+  ContactSubmissionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: contact_submissions
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
+  ContactFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: sunshine-contact-form
+      CodeUri: .
+      Handler: handler.handler
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref ContactSubmissionsTable
+          RESEND_API_KEY: !Ref ResendApiKey
+          CONTACT_TO_EMAIL: !Ref ContactToEmail
+          CONTACT_FROM_EMAIL: !Ref ContactFromEmail
+          ALLOWED_ORIGINS: !Ref AllowedOrigins
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ContactSubmissionsTable
+      Events:
+        PostContact:
+          Type: HttpApi
+          Properties:
+            Path: /contact
+            Method: POST
+            ApiId: !Ref ContactHttpApi
+        OptionsContact:
+          Type: HttpApi
+          Properties:
+            Path: /contact
+            Method: OPTIONS
+            ApiId: !Ref ContactHttpApi
+
+  ContactHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+      CorsConfiguration:
+        AllowOrigins: !Split [",", !Ref AllowedOrigins]
+        AllowHeaders:
+          - content-type
+        AllowMethods:
+          - POST
+          - OPTIONS
+
+Outputs:
+  ContactApiUrl:
+    Description: POST JSON contact submissions to this URL
+    Value: !Sub "https://${ContactHttpApi}.execute-api.${AWS::Region}.amazonaws.com/contact"
+  TableName:
+    Value: !Ref ContactSubmissionsTable

@@ -31,3 +31,6 @@ credentials.json
 node_modules/
 dist/
 .parcel-cache/
+.aws-sam/
+infra/contact-api/node_modules/
+infra/contact-api/.aws-sam/

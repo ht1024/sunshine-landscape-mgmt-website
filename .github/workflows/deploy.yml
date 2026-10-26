@@ -31,4 +31,8 @@ jobs:
           aws s3 sync . s3://sunshine-landscape-mgmt \
             --delete \
             --exclude ".git/*" \
-            --exclude ".github/*"
+            --exclude ".github/*" \
+            --exclude "infra/contact-api/*" \
+            --exclude "infra/contact-api/**" \
+            --exclude "**/node_modules/*" \
+            --exclude "**/.aws-sam/*"
