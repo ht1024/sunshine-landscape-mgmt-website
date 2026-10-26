@@ -70,6 +70,8 @@ jobs:
             echo "Missing GitHub secret RESEND_API_KEY. Add it under Settings → Secrets and variables → Actions."
             exit 1
           fi
+          # Do not override ContactFromEmail here — shell quoting truncates it.
+          # Template default is: Sunshine Landscape <noreply@sunshine-landscape.com>
           sam deploy \
             --stack-name sunshine-contact-api \
             --capabilities CAPABILITY_IAM \
@@ -79,8 +81,7 @@ jobs:
             --no-fail-on-empty-changeset \
             --parameter-overrides \
               "ResendApiKey=${RESEND_API_KEY}" \
-              "ContactToEmail=slandscapemgmt@gmail.com" \
-              "ContactFromEmail=Sunshine Landscape <noreply@sunshine-landscape.com>"
+              "ContactToEmail=slandscapemgmt@gmail.com"
 
       - name: Print API URL
         run: |
